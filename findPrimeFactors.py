@@ -31,11 +31,11 @@ def find_prime_factors(number):
 
 def validate_user_input():
     """
-    Take in a user input for number of sequence items between 0 and 10000
-    :return: int number of digits
+    Take in a user input for number between 0 and 10000
+    :return: int number to find prime factors of
     """
     while True:
-        num = input("How many sequence items would you like to see? ")
+        num = input("Enter a number to find its prime factors? ")
         try:
             number = int(num)
             if number >= 10000:
