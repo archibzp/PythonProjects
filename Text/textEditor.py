@@ -7,7 +7,6 @@ Author: Zach Archibald
 import tkinter as tk
 import tkinter.filedialog as tkf
 import tkinter.messagebox as tkm
-import os
 
 
 class TextEditorApplication(tk.Frame):
@@ -37,6 +36,8 @@ class TextEditorApplication(tk.Frame):
         file_menu.add_command(label="Open File", command=self.open_file)
         file_menu.add_command(label="Save File", command=self.save_file)
         file_menu.add_separator()
+        file_menu.add_command(label="New Window", command=self.new_window)
+        file_menu.add_separator()
         file_menu.add_command(label="Exit", command=self.master.destroy)
         menu.add_cascade(label="File", menu=file_menu)
 
@@ -48,14 +49,38 @@ class TextEditorApplication(tk.Frame):
         edit_menu.add_command(label="Clear", command=self.clear)
         menu.add_cascade(label="Edit", menu=edit_menu)
 
+        format_menu = tk.Menu(menu, tearoff=False)
+        menu.add_cascade(label="View", menu=format_menu)
+
     def cut(self):
-        pass
+        self.copy()
+        self.delete_selection()
 
     def copy(self):
-        pass
+        try:
+            selection = str(self.text_area.selection_get())
+            self.clipboard_clear()
+            self.clipboard_append(selection)
+        except tk.TclError:
+            pass
 
     def paste(self):
-        pass
+        item = self.clipboard_get()
+        mark = self.text_area.mark_next('current')
+        # If current selection is a range, delete that range prior to pasting
+        self.delete_selection()
+        self.text_area.insert(mark, item)
+
+    def delete_selection(self):
+        '''
+        Used by cut and paste functions to delete selected text
+        '''
+        try:
+            first_index = self.text_area.tag_ranges('sel')[0]
+            last_index = self.text_area.tag_ranges('sel')[1]
+            self.text_area.delete(first_index, last_index)
+        except IndexError:
+            pass
 
     def clear(self):
         self.text_area.delete("1.0", tk.END)
@@ -84,13 +109,18 @@ class TextEditorApplication(tk.Frame):
         self.update_title(file)
         file.close()
 
+    def new_window(self):
+        root2 = tk.Tk()
+        new_editor = TextEditorApplication(master=root2)
+        new_editor.mainloop()
+
     def update_title(self, file):
         if file is not None:
             file_path = file.name
             file_name = file_path.split("/")[-1]
-            self.master.title("Zach's Text Editor  -  " + file_name)
+            self.master.title("Text Editor  -  " + file_name)
         else:
-            self.master.title("Zach's Text Editor  -  (New File)")
+            self.master.title("Text Editor  -  (New File)")
 
     def data_loss_warning(self):
         return tk.messagebox.askyesno(title="Message", message="Opening a new file will lose any "
